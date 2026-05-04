@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { mkdir, readdir, readFile, writeFile } from "fs/promises";
 import path from "path";
+import { getDb, hasDatabaseConfigured } from "@/lib/db";
 import { RouteInput, RouteRecommendation } from "@/lib/routefit-data";
 
 const STORAGE_DIR = path.join(process.cwd(), ".data");
@@ -12,7 +13,7 @@ export type StoredRouteRequest = {
   createdAt: string;
 };
 
-export async function saveRouteRequest(input: RouteInput, recommendations: RouteRecommendation[]) {
+async function saveToFile(input: RouteInput, recommendations: RouteRecommendation[]) {
   await mkdir(STORAGE_DIR, { recursive: true });
   const id = randomUUID();
   const payload: StoredRouteRequest = {
@@ -25,13 +26,13 @@ export async function saveRouteRequest(input: RouteInput, recommendations: Route
   return id;
 }
 
-export async function listSavedRouteRequests(): Promise<StoredRouteRequest[]> {
+async function listFromFile(): Promise<StoredRouteRequest[]> {
   await mkdir(STORAGE_DIR, { recursive: true });
-  const files = (await readdir(STORAGE_DIR)).filter((file) => file.endsWith('.json'));
+  const files = (await readdir(STORAGE_DIR)).filter((file) => file.endsWith(".json"));
   const items = await Promise.all(
     files.map(async (file) => {
       try {
-        const raw = await readFile(path.join(STORAGE_DIR, file), 'utf8');
+        const raw = await readFile(path.join(STORAGE_DIR, file), "utf8");
         return JSON.parse(raw) as StoredRouteRequest;
       } catch {
         return null;
@@ -42,4 +43,113 @@ export async function listSavedRouteRequests(): Promise<StoredRouteRequest[]> {
   return items
     .filter((item): item is StoredRouteRequest => item !== null)
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+async function saveToDb(input: RouteInput, recommendations: RouteRecommendation[]) {
+  const db = getDb();
+  if (!db) return saveToFile(input, recommendations);
+
+  const id = randomUUID();
+  await db.query(
+    `insert into route_requests (id, location_label, scheduled_date, scheduled_time, modality, distance_km, training_type, preferences_json)
+     values ($1,$2,$3,$4,$5,$6,$7,$8::jsonb)`,
+    [id, input.location, input.date, input.time, input.modality, input.distance, input.trainingType, JSON.stringify(input.preferences)]
+  );
+
+  for (const route of recommendations) {
+    await db.query(
+      `insert into saved_routes (
+        id, request_id, route_kind, title, distance_km, estimated_minutes, elevation_gain, overall_score,
+        safety_score, training_fit_score, traffic_score, elevation_score, flow_score, popularity_score,
+        recommendation_reason, attention_points_json, provider
+      ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16::jsonb,$17)`,
+      [
+        route.id,
+        id,
+        route.kind,
+        route.title,
+        route.distanceKm,
+        route.estimatedMinutes,
+        route.elevationGain,
+        route.overallScore,
+        route.safetyScore,
+        route.trainingFitScore,
+        route.trafficScore,
+        route.elevationScore,
+        route.flowScore,
+        route.popularityScore,
+        route.recommendationReason,
+        JSON.stringify(route.attentionPoints),
+        "google_maps",
+      ]
+    );
+  }
+
+  return id;
+}
+
+async function listFromDb(): Promise<StoredRouteRequest[]> {
+  const db = getDb();
+  if (!db) return listFromFile();
+
+  const { rows } = await db.query(`
+    select rr.id,
+           rr.location_label,
+           rr.scheduled_date::text,
+           rr.scheduled_time::text,
+           rr.modality,
+           rr.distance_km,
+           rr.training_type,
+           rr.preferences_json,
+           rr.created_at,
+           json_agg(json_build_object(
+             'id', sr.id,
+             'kind', sr.route_kind,
+             'title', sr.title,
+             'distanceKm', sr.distance_km,
+             'estimatedMinutes', sr.estimated_minutes,
+             'elevationGain', sr.elevation_gain,
+             'overallScore', sr.overall_score,
+             'safetyScore', sr.safety_score,
+             'trainingFitScore', sr.training_fit_score,
+             'trafficScore', sr.traffic_score,
+             'elevationScore', sr.elevation_score,
+             'flowScore', sr.flow_score,
+             'popularityScore', sr.popularity_score,
+             'attentionPoints', sr.attention_points_json,
+             'recommendationReason', sr.recommendation_reason,
+             'mapSummary', sr.title,
+             'polyline', null
+           ) order by sr.overall_score desc) as recommendations
+    from route_requests rr
+    join saved_routes sr on sr.request_id = rr.id
+    group by rr.id
+    order by rr.created_at desc
+    limit 50
+  `);
+
+  return rows.map((row) => ({
+    id: row.id,
+    input: {
+      location: row.location_label,
+      date: row.scheduled_date,
+      time: String(row.scheduled_time).slice(0, 5),
+      modality: row.modality,
+      distance: Number(row.distance_km),
+      trainingType: row.training_type,
+      preferences: Array.isArray(row.preferences_json) ? row.preferences_json : [],
+    },
+    recommendations: Array.isArray(row.recommendations) ? row.recommendations : [],
+    createdAt: row.created_at instanceof Date ? row.created_at.toISOString() : String(row.created_at),
+  }));
+}
+
+export async function saveRouteRequest(input: RouteInput, recommendations: RouteRecommendation[]) {
+  if (hasDatabaseConfigured()) return saveToDb(input, recommendations);
+  return saveToFile(input, recommendations);
+}
+
+export async function listSavedRouteRequests(): Promise<StoredRouteRequest[]> {
+  if (hasDatabaseConfigured()) return listFromDb();
+  return listFromFile();
 }

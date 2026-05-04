@@ -36,10 +36,10 @@ MVP funcional de produto com:
 
 ## Próximo bloco
 1. login real
-2. PostgreSQL + PostGIS
-3. integração Google Maps API
-4. salvar rotas
-5. trocar mock por geração real de candidatas
+2. PostgreSQL + PostGIS (camada híbrida já preparada no código)
+3. integração Google Maps API mais robusta
+4. salvar rotas no banco de verdade
+5. trocar fallback por candidatas reais completas
 
 ## Variáveis esperadas para próxima fase
 Criar `.env.local` com algo como:
