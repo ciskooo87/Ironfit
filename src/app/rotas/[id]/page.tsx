@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/AppShell";
+import { RouteMapCard } from "@/components/RouteMapCard";
 import { listSavedRouteRequests } from "@/lib/route-store";
 
 export default async function RouteDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -35,13 +36,7 @@ export default async function RouteDetailPage({ params }: { params: Promise<{ id
         </section>
 
         <aside className="grid gap-6">
-          <section className="rounded-[32px] border border-white/10 bg-white/5 p-6">
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Mapa</div>
-            <div className="mt-3 rounded-[24px] bg-slate-900 p-5 text-sm leading-7 text-slate-300">
-              {route.mapSummary}
-              <div className="mt-4 text-xs text-slate-400">Preparado para encaixar Google Maps Directions + polyline + pontos de atenção.</div>
-            </div>
-          </section>
+          <RouteMapCard title={route.title} summary={route.mapSummary} polyline={route.polyline} />
 
           <section className="rounded-[32px] border border-white/10 bg-white/5 p-6">
             <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Pontos de atenção</div>

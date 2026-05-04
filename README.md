@@ -30,6 +30,7 @@ MVP funcional de produto com:
 - home com submit client-side para `/api/routes/recommend`
 - geração de 3 rotas com fallback por regras e preparação para Google Maps
 - detalhe da rota puxando dados reais do histórico salvo
+- mapa com Google Static Maps quando houver polyline e key pública configurada
 - histórico salvo em arquivo local (`.data`)
 - manual interno
 

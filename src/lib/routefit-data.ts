@@ -29,6 +29,7 @@ export type RouteRecommendation = {
   attentionPoints: string[];
   recommendationReason: string;
   mapSummary: string;
+  polyline?: string;
 };
 
 export const trainingOptions: TrainingType[] = ["leve", "endurance", "subida", "intervalado", "ritmo"];

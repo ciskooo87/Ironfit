@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { RouteMapCard } from "@/components/RouteMapCard";
 import { preferenceOptions, RouteInput, RouteRecommendation, trainingOptions } from "@/lib/routefit-data";
 
 type Props = {
@@ -39,16 +40,16 @@ export function RouteGeneratorClient({
     event.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch('/api/routes/recommend', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/routes/recommend", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(input),
       });
       const data = await res.json();
       if (data?.ok) {
         setRoutes(data.recommendations || []);
-        setProvider(data.provider || 'mock_rules');
-        setRequestId(data.requestId || '');
+        setProvider(data.provider || "mock_rules");
+        setRequestId(data.requestId || "");
         setCandidateCount(Number(data.candidateCount || 0));
       }
     } finally {
@@ -121,7 +122,7 @@ export function RouteGeneratorClient({
           </div>
 
           <button disabled={loading} className="rounded-2xl bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300 disabled:opacity-60">
-            {loading ? 'Gerando rotas...' : 'Gerar 3 rotas recomendadas'}
+            {loading ? "Gerando rotas..." : "Gerar 3 rotas recomendadas"}
           </button>
         </form>
       </section>
@@ -137,11 +138,11 @@ export function RouteGeneratorClient({
           <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
             <div className="text-xs uppercase tracking-[0.18em] text-slate-400">Provider atual</div>
             <div className="mt-3 text-sm leading-7 text-slate-300">
-              {provider === 'mock_rules'
-                ? 'Rodando em mock por regras. Falta configurar Google Maps API para candidatas reais.'
-                : provider === 'google_maps_fallback'
-                  ? 'Google Maps já configurado, mas ainda sem geração real de candidatas.'
-                  : 'Google Maps ativo com candidatas reais.'}
+              {provider === "mock_rules"
+                ? "Rodando em mock por regras. Falta configurar Google Maps API para candidatas reais."
+                : provider === "google_maps_fallback"
+                  ? "Google Maps já configurado, mas ainda sem geração real de candidatas."
+                  : "Google Maps ativo com candidatas reais."}
             </div>
           </div>
           <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
@@ -165,6 +166,7 @@ export function RouteGeneratorClient({
               </div>
               <div className="rounded-full bg-cyan-400 px-4 py-2 text-sm font-semibold text-slate-950">Score {route.overallScore}</div>
             </div>
+
             <div className="mt-5 grid gap-3 md:grid-cols-5">
               <div className="rounded-2xl bg-slate-900 px-4 py-4"><div className="text-[11px] uppercase text-slate-400">Distância</div><div className="mt-2 text-xl font-semibold text-white">{route.distanceKm} km</div></div>
               <div className="rounded-2xl bg-slate-900 px-4 py-4"><div className="text-[11px] uppercase text-slate-400">Tempo</div><div className="mt-2 text-xl font-semibold text-white">{route.estimatedMinutes} min</div></div>
@@ -172,15 +174,9 @@ export function RouteGeneratorClient({
               <div className="rounded-2xl bg-slate-900 px-4 py-4"><div className="text-[11px] uppercase text-slate-400">Segurança</div><div className="mt-2 text-xl font-semibold text-white">{route.safetyScore}</div></div>
               <div className="rounded-2xl bg-slate-900 px-4 py-4"><div className="text-[11px] uppercase text-slate-400">Aderência</div><div className="mt-2 text-xl font-semibold text-white">{route.trainingFitScore}</div></div>
             </div>
+
             <div className="mt-5 grid gap-4 xl:grid-cols-[1fr_0.88fr]">
-              <div className="rounded-[28px] border border-dashed border-cyan-400/30 bg-slate-900 p-5">
-                <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Mapa</div>
-                <div className="mt-3 rounded-[22px] bg-[linear-gradient(135deg,#0f172a,#1e293b)] p-5 text-sm leading-7 text-slate-300">
-                  <div className="font-semibold text-white">Preview da rota recomendada</div>
-                  <div className="mt-2">{route.mapSummary}</div>
-                  <div className="mt-4 text-xs text-slate-400">No MVP real, este bloco recebe Google Maps com polyline, vias, trânsito e pontos de atenção.</div>
-                </div>
-              </div>
+              <RouteMapCard title={route.title} summary={route.mapSummary} polyline={route.polyline} />
               <div className="grid gap-4">
                 <div className="rounded-[28px] bg-slate-900 p-5">
                   <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Pontos de atenção</div>

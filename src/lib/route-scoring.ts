@@ -70,5 +70,6 @@ export function scoreCandidate(kind: RouteRecommendation["kind"], candidate: Map
           ? "Entre as candidatas reais, esta prioriza continuidade e encaixe mais forte com esforço de performance."
           : "Entre as candidatas reais, esta reduz exposição a alertas e prioriza uma leitura mais conservadora de segurança.",
     mapSummary: candidate.summary || candidate.waypointLabel,
+    polyline: candidate.polyline,
   };
 }
