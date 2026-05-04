@@ -11,6 +11,7 @@ export type StoredRouteRequest = {
   input: RouteInput;
   recommendations: RouteRecommendation[];
   createdAt: string;
+  storage: "file" | "database";
 };
 
 async function saveToFile(input: RouteInput, recommendations: RouteRecommendation[]) {
@@ -21,6 +22,7 @@ async function saveToFile(input: RouteInput, recommendations: RouteRecommendatio
     input,
     recommendations,
     createdAt: new Date().toISOString(),
+    storage: "file",
   };
   await writeFile(path.join(STORAGE_DIR, `${id}.json`), JSON.stringify(payload, null, 2), "utf8");
   return id;
@@ -42,6 +44,7 @@ async function listFromFile(): Promise<StoredRouteRequest[]> {
 
   return items
     .filter((item): item is StoredRouteRequest => item !== null)
+    .map((item) => ({ ...item, storage: item.storage ?? "file" }))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
@@ -61,8 +64,8 @@ async function saveToDb(input: RouteInput, recommendations: RouteRecommendation[
       `insert into saved_routes (
         id, request_id, route_kind, title, distance_km, estimated_minutes, elevation_gain, overall_score,
         safety_score, training_fit_score, traffic_score, elevation_score, flow_score, popularity_score,
-        recommendation_reason, attention_points_json, provider
-      ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16::jsonb,$17)`,
+        recommendation_reason, attention_points_json, polyline, provider
+      ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16::jsonb,$17,$18)`,
       [
         route.id,
         id,
@@ -130,6 +133,7 @@ async function listFromDb(): Promise<StoredRouteRequest[]> {
 
   return rows.map((row) => ({
     id: row.id,
+    storage: "database" as const,
     input: {
       location: row.location_label,
       date: row.scheduled_date,

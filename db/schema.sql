@@ -52,6 +52,7 @@ create table if not exists saved_routes (
   popularity_score int not null,
   recommendation_reason text not null,
   attention_points_json jsonb not null default '[]'::jsonb,
+  polyline text,
   route_geometry geometry(LineString, 4326),
   provider text default 'google_maps',
   created_at timestamptz not null default now()

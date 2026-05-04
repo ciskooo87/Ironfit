@@ -31,7 +31,7 @@ MVP funcional de produto com:
 - geração de 3 rotas com fallback por regras e preparação para Google Maps
 - detalhe da rota puxando dados reais do histórico salvo
 - mapa com Google Static Maps quando houver polyline e key pública configurada
-- histórico salvo em arquivo local (`.data`)
+- histórico salvo em arquivo local (`.data`) ou PostgreSQL, dependendo do ambiente
 - manual interno
 
 ## Próximo bloco

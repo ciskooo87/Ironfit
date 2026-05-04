@@ -22,6 +22,7 @@ export default async function HistoryPage() {
                 <div className="text-xs uppercase tracking-[0.18em] text-slate-400">{new Date(item.createdAt).toLocaleString("pt-BR")}</div>
                 <div className="mt-2 text-2xl font-semibold text-white">{item.input.modality} · {item.input.location}</div>
                 <div className="mt-3 text-sm text-slate-300">{item.input.distance} km · {item.input.trainingType} · {item.input.date} {item.input.time}</div>
+                <div className="mt-2 text-xs uppercase tracking-[0.18em] text-slate-500">Origem: {item.storage === "database" ? "PostgreSQL" : "arquivo local"}</div>
                 <div className="mt-3 rounded-2xl bg-slate-900 px-4 py-4 text-sm leading-7 text-slate-300">
                   Melhor rota atual: <strong className="text-white">{best?.kind ?? "-"}</strong> · score <strong className="text-white">{best?.overallScore ?? "-"}</strong>
                 </div>
