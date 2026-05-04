@@ -1,21 +1,20 @@
 import { AppShell } from "@/components/AppShell";
-import { generateRecommendations, normalizeInput } from "@/lib/routefit-data";
+import { listSavedRouteRequests } from "@/lib/route-store";
 
 export default async function RouteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const routes = generateRecommendations(
-    normalizeInput({
-      location: "Ibirapuera, São Paulo",
-      date: "2026-05-05",
-      time: "06:00",
-      modality: "corrida",
-      distance: "10",
-      trainingType: "leve",
-      preferences: "evitar trânsito,rota circular,priorizar parque",
-    })
-  );
+  const requests = await listSavedRouteRequests();
+  const route = requests.flatMap((request) => request.recommendations).find((item) => item.id === id);
 
-  const route = routes.find((item) => item.id === id) ?? routes[0];
+  if (!route) {
+    return (
+      <AppShell>
+        <main className="rounded-[32px] border border-white/10 bg-white/5 p-6 md:p-8 text-slate-200">
+          Rota não encontrada no histórico salvo.
+        </main>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell>

@@ -27,8 +27,9 @@ MVP funcional de produto com:
 - onboarding
 - home com formulário
 - endpoint interno de recomendação
+- home com submit client-side para `/api/routes/recommend`
 - geração de 3 rotas com fallback por regras e preparação para Google Maps
-- detalhe da rota
+- detalhe da rota puxando dados reais do histórico salvo
 - histórico salvo em arquivo local (`.data`)
 - manual interno
 
