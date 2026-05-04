@@ -49,6 +49,17 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
 DATABASE_URL=
 ```
 
+## Banco local (PostgreSQL + PostGIS)
+```bash
+chmod +x scripts/db-setup.sh
+./scripts/db-setup.sh
+```
+
+Depois configure `.env.local` com:
+```bash
+DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:5434/ironfit
+```
+
 ## Desenvolvimento
 ```bash
 npm install
