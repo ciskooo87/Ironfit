@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { RouteMapCard } from "@/components/RouteMapCard";
+import { withBasePath } from "@/lib/base-path";
 import { preferenceOptions, RouteInput, RouteRecommendation, trainingOptions } from "@/lib/routefit-data";
 
 type Props = {

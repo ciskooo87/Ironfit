@@ -2,6 +2,11 @@ export type Modality = "corrida" | "bike";
 export type TrainingType = "leve" | "endurance" | "subida" | "intervalado" | "ritmo";
 export type RouteKind = "Melhor geral" | "Performance" | "Mais segura";
 
+function makeId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  return `route-${Math.random().toString(36).slice(2)}-${Date.now()}`;
+}
+
 export type RouteInput = {
   location: string;
   date: string;
@@ -161,7 +166,7 @@ function buildRoute(kind: RouteKind, input: RouteInput): RouteRecommendation {
         : "Rota com preferência por parque, vias mais calmas ou infraestrutura cicloviária quando disponível.";
 
   return {
-    id: `${kind.toLowerCase().replace(/\s+/g, "-")}-${input.modality}`,
+    id: makeId(),
     kind,
     title,
     distanceKm,

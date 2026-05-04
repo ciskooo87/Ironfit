@@ -81,7 +81,7 @@ async function saveToDb(input: RouteInput, recommendations: RouteRecommendation[
         recommendation_reason, attention_points_json, polyline, route_geometry, provider
       ) values (
         $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16::jsonb,$17,
-        case when $17 is not null then ST_LineFromEncodedPolyline($17) else null end,
+        case when $17::text is not null then ST_LineFromEncodedPolyline($17::text) else null end,
         $18
       )`,
       [

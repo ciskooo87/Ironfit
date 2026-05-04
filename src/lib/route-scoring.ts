@@ -1,6 +1,11 @@
 import { MapsRouteCandidate } from "@/lib/google-maps";
 import { RouteInput, RouteRecommendation } from "@/lib/routefit-data";
 
+function makeId() {
+  if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  return `route-${Math.random().toString(36).slice(2)}-${Date.now()}`;
+}
+
 function clamp(value: number, min = 0, max = 100) {
   return Math.max(min, Math.min(max, value));
 }
@@ -49,7 +54,7 @@ export function scoreCandidate(kind: RouteRecommendation["kind"], candidate: Map
   );
 
   return {
-    id: `${kind.toLowerCase().replace(/\s+/g, "-")}-${candidate.id}`,
+    id: makeId(),
     kind,
     title: `${kind} · ${candidate.waypointLabel}`,
     distanceKm,
