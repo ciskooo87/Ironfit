@@ -186,6 +186,12 @@ export function RouteGeneratorClient({
                       <div key={point} className="rounded-2xl bg-slate-800 px-4 py-3 text-sm text-slate-200">{point}</div>
                     ))}
                   </div>
+                  <div className="mt-4 grid gap-2 md:grid-cols-2">
+                    <div className="rounded-xl border border-white/10 bg-slate-800 px-3 py-3 text-sm text-slate-200">Trânsito <strong className="text-white">{route.trafficScore}</strong></div>
+                    <div className="rounded-xl border border-white/10 bg-slate-800 px-3 py-3 text-sm text-slate-200">Fluidez <strong className="text-white">{route.flowScore}</strong></div>
+                    <div className="rounded-xl border border-white/10 bg-slate-800 px-3 py-3 text-sm text-slate-200">Popularidade <strong className="text-white">{route.popularityScore}</strong></div>
+                    <div className="rounded-xl border border-white/10 bg-slate-800 px-3 py-3 text-sm text-slate-200">Geometria <strong className="text-white">{route.geometryAvailable ? 'sim' : 'não'}</strong></div>
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Link href={`/rotas/${route.id}`} className="rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-950">Ver detalhe</Link>

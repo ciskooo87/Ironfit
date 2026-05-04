@@ -7,7 +7,8 @@ export default async function RouteDetailPage({ params }: { params: Promise<{ id
   const { id } = await params;
   const user = await getCurrentUser();
   const requests = await listSavedRouteRequests(user?.email ?? null);
-  const route = requests.flatMap((request) => request.recommendations).find((item) => item.id === id);
+  const request = requests.find((entry) => entry.recommendations.some((item) => item.id === id));
+  const route = request?.recommendations.find((item) => item.id === id);
 
   if (!route) {
     return (
@@ -27,6 +28,15 @@ export default async function RouteDetailPage({ params }: { params: Promise<{ id
           <h1 className="mt-3 text-4xl font-semibold tracking-[-0.06em] text-white">{route.title}</h1>
           <p className="mt-4 text-sm leading-7 text-slate-300">{route.recommendationReason}</p>
           <div className="mt-3 text-xs uppercase tracking-[0.18em] text-slate-400">Geometria no banco: {route.geometryAvailable ? "sim" : "não"}</div>
+
+          {request ? (
+            <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">
+              <span className="rounded-full border border-white/10 bg-slate-900 px-3 py-2">{request.input.modality}</span>
+              <span className="rounded-full border border-white/10 bg-slate-900 px-3 py-2">{request.input.distance} km</span>
+              <span className="rounded-full border border-white/10 bg-slate-900 px-3 py-2">{request.input.trainingType}</span>
+              <span className="rounded-full border border-white/10 bg-slate-900 px-3 py-2">{request.input.date} {request.input.time}</span>
+            </div>
+          ) : null}
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <div className="rounded-2xl bg-slate-900 p-4"><div className="text-xs uppercase text-slate-400">Distância</div><div className="mt-2 text-2xl font-semibold text-white">{route.distanceKm} km</div></div>
@@ -48,6 +58,12 @@ export default async function RouteDetailPage({ params }: { params: Promise<{ id
                 <div key={point} className="rounded-2xl bg-slate-900 px-4 py-3 text-sm text-slate-200">{point}</div>
               ))}
             </div>
+            {request ? (
+              <div className="mt-4 rounded-2xl border border-white/10 bg-slate-900 px-4 py-4 text-sm leading-7 text-slate-300">
+                <div><strong className="text-white">Local do request:</strong> {request.input.location}</div>
+                <div className="mt-2"><strong className="text-white">Preferências:</strong> {request.input.preferences.length ? request.input.preferences.join(" • ") : "nenhuma"}</div>
+              </div>
+            ) : null}
           </section>
         </aside>
       </main>

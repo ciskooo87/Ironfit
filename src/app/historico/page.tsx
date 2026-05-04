@@ -26,7 +26,12 @@ export default async function HistoryPage() {
                 <div className="mt-3 text-sm text-slate-300">{item.input.distance} km · {item.input.trainingType} · {item.input.date} {item.input.time}</div>
                 <div className="mt-2 text-xs uppercase tracking-[0.18em] text-slate-500">Origem: {item.storage === "database" ? "PostgreSQL" : "arquivo local"}</div>
                 <div className="mt-3 rounded-2xl bg-slate-900 px-4 py-4 text-sm leading-7 text-slate-300">
-                  Melhor rota atual: <strong className="text-white">{best?.kind ?? "-"}</strong> · score <strong className="text-white">{best?.overallScore ?? "-"}</strong>
+                  <div>Melhor rota atual: <strong className="text-white">{best?.kind ?? "-"}</strong> · score <strong className="text-white">{best?.overallScore ?? "-"}</strong></div>
+                  <div className="mt-2 grid gap-2 md:grid-cols-3">
+                    <div className="rounded-xl border border-white/10 bg-slate-800 px-3 py-3">Segurança <strong className="ml-1 text-white">{best?.safetyScore ?? "-"}</strong></div>
+                    <div className="rounded-xl border border-white/10 bg-slate-800 px-3 py-3">Aderência <strong className="ml-1 text-white">{best?.trainingFitScore ?? "-"}</strong></div>
+                    <div className="rounded-xl border border-white/10 bg-slate-800 px-3 py-3">Fluidez <strong className="ml-1 text-white">{best?.flowScore ?? "-"}</strong></div>
+                  </div>
                   <div className="mt-2 text-xs text-slate-400">Geometria: {best?.geometryAvailable ? "disponível no banco" : "não disponível"}</div>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
