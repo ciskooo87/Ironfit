@@ -23,12 +23,13 @@ Com base em:
 - TypeScript
 
 ## Status atual
-Protótipo funcional de produto com:
+MVP funcional de produto com:
 - onboarding
 - home com formulário
-- geração simulada de 3 rotas com score simples
+- endpoint interno de recomendação
+- geração de 3 rotas com fallback por regras e preparação para Google Maps
 - detalhe da rota
-- histórico mockado
+- histórico salvo em arquivo local (`.data`)
 - manual interno
 
 ## Próximo bloco

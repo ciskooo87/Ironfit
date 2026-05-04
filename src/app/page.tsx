@@ -102,6 +102,11 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
               <div className="text-xs uppercase tracking-[0.18em] text-slate-400">Stack do MVP</div>
               <div className="mt-3 text-sm leading-7 text-slate-300">Next.js + Tailwind no front. Próximo bloco: Postgres/PostGIS e camada de rotas com Google Maps API.</div>
             </div>
+            <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
+              <div className="text-xs uppercase tracking-[0.18em] text-slate-400">Request atual</div>
+              <div className="mt-3 text-sm leading-7 text-slate-300">ID: {recommendationResult.requestId}</div>
+              <div className="mt-2 text-sm leading-7 text-slate-300">Candidatas reais: {recommendationResult.candidateCount}</div>
+            </div>
           </div>
 
           {routes.map((route) => (
