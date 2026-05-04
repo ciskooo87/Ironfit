@@ -109,9 +109,53 @@ async function fetchDirectionsRoute(origin: LatLng, waypoint: LatLng, mode: "cor
   };
 }
 
+function encodeSigned(value: number) {
+  let sgnNum = value << 1;
+  if (value < 0) sgnNum = ~sgnNum;
+  let encoded = "";
+  while (sgnNum >= 0x20) {
+    encoded += String.fromCharCode((0x20 | (sgnNum & 0x1f)) + 63);
+    sgnNum >>= 5;
+  }
+  encoded += String.fromCharCode(sgnNum + 63);
+  return encoded;
+}
+
+function encodePolyline(points: LatLng[]) {
+  let lastLat = 0;
+  let lastLng = 0;
+  let result = "";
+  for (const point of points) {
+    const lat = Math.round(point.lat * 1e5);
+    const lng = Math.round(point.lng * 1e5);
+    result += encodeSigned(lat - lastLat);
+    result += encodeSigned(lng - lastLng);
+    lastLat = lat;
+    lastLng = lng;
+  }
+  return result;
+}
+
+function buildSyntheticCandidates(origin: LatLng, distanceKm: number, mode: "corrida" | "bike") {
+  return buildWaypointCandidates(origin, distanceKm).slice(0, 6).map((candidate, index) => {
+    const secondPoint = offsetPoint(origin, Math.max(0.8, distanceKm * 0.22), (index * 55 + 35) % 360);
+    const points = [origin, candidate.point, secondPoint, origin];
+    const estimatedMinutes = mode === 'bike' ? Math.round(distanceKm * 2.3) : Math.round(distanceKm * 6.1);
+    return {
+      id: candidate.id,
+      summary: `Loop estimado · ${candidate.label}`,
+      distanceMeters: Math.round(distanceKm * 1000),
+      durationSeconds: estimatedMinutes * 60,
+      polyline: encodePolyline(points),
+      warnings: ['Rota estimada por fallback geográfico, sem Directions em tempo real.'],
+      waypointLabel: candidate.label,
+    } satisfies MapsRouteCandidate;
+  });
+}
+
 export async function fetchGoogleRouteCandidates(origin: LatLng, distanceKm: number, mode: "corrida" | "bike") {
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;
-  if (!apiKey) return [] as MapsRouteCandidate[];
+  if (!apiKey) return buildSyntheticCandidates(origin, distanceKm, mode);
 
   const waypointCandidates = buildWaypointCandidates(origin, distanceKm);
   const results: Array<MapsRouteCandidate | null> = await Promise.all(

@@ -36,6 +36,7 @@ MVP funcional de produto com:
 - login MVP por cookie para amarrar usuário ao fluxo
 - histórico e detalhe da rota respeitando usuário logado quando houver banco
 - candidatas do Google Maps com mais direções e tamanhos de loop
+- fallback geográfico gera polyline sintética quando Directions não estiver configurado
 - manual interno
 
 ## Próximo bloco
