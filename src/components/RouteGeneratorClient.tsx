@@ -27,6 +27,7 @@ export function RouteGeneratorClient({
   const [requestId, setRequestId] = useState(initialRequestId);
   const [candidateCount, setCandidateCount] = useState(initialCandidateCount);
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
   function togglePreference(pref: string) {
     setInput((prev) => ({
@@ -40,8 +41,9 @@ export function RouteGeneratorClient({
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setLoading(true);
+    setMessage(null);
     try {
-      const res = await fetch("/api/routes/recommend", {
+      const res = await fetch(withBasePath("/api/routes/recommend"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(input),
@@ -52,7 +54,12 @@ export function RouteGeneratorClient({
         setProvider(data.provider || "mock_rules");
         setRequestId(data.requestId || "");
         setCandidateCount(Number(data.candidateCount || 0));
+        setMessage("Rotas atualizadas com sucesso.");
+      } else {
+        setMessage("Não foi possível atualizar as rotas agora.");
       }
+    } catch {
+      setMessage("Falha ao consultar o motor de rotas.");
     } finally {
       setLoading(false);
     }
@@ -66,6 +73,8 @@ export function RouteGeneratorClient({
         <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
           O RouteFit AI recomenda 3 rotas: melhor geral, performance e mais segura. O foco agora é execução rápida com score simples e leitura clara.
         </p>
+
+        {message ? <div className="mt-4 rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-sm text-slate-200">{message}</div> : null}
 
         <form onSubmit={handleSubmit} className="mt-6 grid gap-4">
           <div>
@@ -135,6 +144,7 @@ export function RouteGeneratorClient({
             <div className="mt-3 text-lg font-semibold text-white">{input.location}</div>
             <div className="mt-2 text-sm text-slate-300">{input.date} · {input.time}</div>
             <div className="mt-2 text-sm text-slate-300">{input.modality} · {input.distance} km · {input.trainingType}</div>
+            <div className="mt-3 text-xs text-slate-400">Preferências: {input.preferences.length ? input.preferences.join(" • ") : "nenhuma"}</div>
           </div>
           <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
             <div className="text-xs uppercase tracking-[0.18em] text-slate-400">Provider atual</div>
@@ -190,7 +200,7 @@ export function RouteGeneratorClient({
                     <div className="rounded-xl border border-white/10 bg-slate-800 px-3 py-3 text-sm text-slate-200">Trânsito <strong className="text-white">{route.trafficScore}</strong></div>
                     <div className="rounded-xl border border-white/10 bg-slate-800 px-3 py-3 text-sm text-slate-200">Fluidez <strong className="text-white">{route.flowScore}</strong></div>
                     <div className="rounded-xl border border-white/10 bg-slate-800 px-3 py-3 text-sm text-slate-200">Popularidade <strong className="text-white">{route.popularityScore}</strong></div>
-                    <div className="rounded-xl border border-white/10 bg-slate-800 px-3 py-3 text-sm text-slate-200">Geometria <strong className="text-white">{route.geometryAvailable ? 'sim' : 'não'}</strong></div>
+                    <div className="rounded-xl border border-white/10 bg-slate-800 px-3 py-3 text-sm text-slate-200">Geometria <strong className="text-white">{route.geometryAvailable ? "sim" : "não"}</strong></div>
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
