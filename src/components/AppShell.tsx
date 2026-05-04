@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { ReactNode } from "react";
+import { getCurrentUser } from "@/lib/auth";
+import { logoutAction } from "@/app/login/actions";
 
 const navItems = [
   { href: "/", label: "Gerar rota" },

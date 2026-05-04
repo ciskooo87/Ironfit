@@ -24,6 +24,7 @@ export default async function RouteDetailPage({ params }: { params: Promise<{ id
           <div className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">Detalhe da rota</div>
           <h1 className="mt-3 text-4xl font-semibold tracking-[-0.06em] text-white">{route.title}</h1>
           <p className="mt-4 text-sm leading-7 text-slate-300">{route.recommendationReason}</p>
+          <div className="mt-3 text-xs uppercase tracking-[0.18em] text-slate-400">Geometria no banco: {route.geometryAvailable ? "sim" : "não"}</div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <div className="rounded-2xl bg-slate-900 p-4"><div className="text-xs uppercase text-slate-400">Distância</div><div className="mt-2 text-2xl font-semibold text-white">{route.distanceKm} km</div></div>

@@ -25,6 +25,7 @@ export default async function HistoryPage() {
                 <div className="mt-2 text-xs uppercase tracking-[0.18em] text-slate-500">Origem: {item.storage === "database" ? "PostgreSQL" : "arquivo local"}</div>
                 <div className="mt-3 rounded-2xl bg-slate-900 px-4 py-4 text-sm leading-7 text-slate-300">
                   Melhor rota atual: <strong className="text-white">{best?.kind ?? "-"}</strong> · score <strong className="text-white">{best?.overallScore ?? "-"}</strong>
+                  <div className="mt-2 text-xs text-slate-400">Geometria: {best?.geometryAvailable ? "disponível no banco" : "não disponível"}</div>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {item.recommendations.map((route) => (

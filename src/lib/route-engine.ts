@@ -17,14 +17,14 @@ function mapCandidatesToRecommendations(candidates: Awaited<ReturnType<typeof fe
   ].sort((a, b) => b.overallScore - a.overallScore);
 }
 
-export async function recommendRoutes(input: RouteInput) {
+export async function recommendRoutes(input: RouteInput, userEmail?: string | null) {
   const mapsEnabled = hasGoogleMapsConfigured();
   const origin = mapsEnabled ? await geocodeLocation(input.location) : null;
   const googleCandidates = origin ? await fetchGoogleRouteCandidates(origin, input.distance, input.modality) : [];
 
   const recommendations = mapCandidatesToRecommendations(googleCandidates, input);
   const provider = googleCandidates.length ? "google_maps" : mapsEnabled ? "google_maps_fallback" : "mock_rules";
-  const requestId = await saveRouteRequest(input, recommendations);
+  const requestId = await saveRouteRequest(input, recommendations, userEmail ?? null);
 
   return {
     requestId,

@@ -48,15 +48,29 @@ async function listFromFile(): Promise<StoredRouteRequest[]> {
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
-async function saveToDb(input: RouteInput, recommendations: RouteRecommendation[]) {
+async function ensureUser(email: string) {
+  const db = getDb();
+  if (!db) return null;
+  const existing = await db.query(`select id from users where email = $1 limit 1`, [email]);
+  if (existing.rows[0]?.id) return existing.rows[0].id as string;
+
+  const id = randomUUID();
+  const name = email.split("@")[0] || "Atleta";
+  await db.query(`insert into users (id, email, name) values ($1,$2,$3)`, [id, email, name]);
+  return id;
+}
+
+async function saveToDb(input: RouteInput, recommendations: RouteRecommendation[], userEmail?: string | null) {
   const db = getDb();
   if (!db) return saveToFile(input, recommendations);
 
   const id = randomUUID();
+  const userId = userEmail ? await ensureUser(userEmail) : null;
+
   await db.query(
-    `insert into route_requests (id, location_label, scheduled_date, scheduled_time, modality, distance_km, training_type, preferences_json)
-     values ($1,$2,$3,$4,$5,$6,$7,$8::jsonb)`,
-    [id, input.location, input.date, input.time, input.modality, input.distance, input.trainingType, JSON.stringify(input.preferences)]
+    `insert into route_requests (id, user_id, location_label, scheduled_date, scheduled_time, modality, distance_km, training_type, preferences_json)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb)`,
+    [id, userId, input.location, input.date, input.time, input.modality, input.distance, input.trainingType, JSON.stringify(input.preferences)]
   );
 
   for (const route of recommendations) {
@@ -64,8 +78,12 @@ async function saveToDb(input: RouteInput, recommendations: RouteRecommendation[
       `insert into saved_routes (
         id, request_id, route_kind, title, distance_km, estimated_minutes, elevation_gain, overall_score,
         safety_score, training_fit_score, traffic_score, elevation_score, flow_score, popularity_score,
-        recommendation_reason, attention_points_json, polyline, provider
-      ) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16::jsonb,$17,$18)`,
+        recommendation_reason, attention_points_json, polyline, route_geometry, provider
+      ) values (
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16::jsonb,$17,
+        case when $17 is not null then ST_LineFromEncodedPolyline($17) else null end,
+        $18
+      )`,
       [
         route.id,
         id,
@@ -83,6 +101,7 @@ async function saveToDb(input: RouteInput, recommendations: RouteRecommendation[
         route.popularityScore,
         route.recommendationReason,
         JSON.stringify(route.attentionPoints),
+        route.polyline ?? null,
         "google_maps",
       ]
     );
@@ -122,7 +141,8 @@ async function listFromDb(): Promise<StoredRouteRequest[]> {
              'attentionPoints', sr.attention_points_json,
              'recommendationReason', sr.recommendation_reason,
              'mapSummary', sr.title,
-             'polyline', null
+             'polyline', sr.polyline,
+             'geometryAvailable', (sr.route_geometry is not null)
            ) order by sr.overall_score desc) as recommendations
     from route_requests rr
     join saved_routes sr on sr.request_id = rr.id
@@ -148,8 +168,8 @@ async function listFromDb(): Promise<StoredRouteRequest[]> {
   }));
 }
 
-export async function saveRouteRequest(input: RouteInput, recommendations: RouteRecommendation[]) {
-  if (hasDatabaseConfigured()) return saveToDb(input, recommendations);
+export async function saveRouteRequest(input: RouteInput, recommendations: RouteRecommendation[], userEmail?: string | null) {
+  if (hasDatabaseConfigured()) return saveToDb(input, recommendations, userEmail);
   return saveToFile(input, recommendations);
 }
 
