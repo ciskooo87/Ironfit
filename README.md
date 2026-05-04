@@ -34,6 +34,8 @@ MVP funcional de produto com:
 - histórico salvo em arquivo local (`.data`) ou PostgreSQL, dependendo do ambiente
 - persistência de polyline e tentativa de `route_geometry` no PostGIS
 - login MVP por cookie para amarrar usuário ao fluxo
+- histórico e detalhe da rota respeitando usuário logado quando houver banco
+- candidatas do Google Maps com mais direções e tamanhos de loop
 - manual interno
 
 ## Próximo bloco

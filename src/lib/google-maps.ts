@@ -44,12 +44,22 @@ function offsetPoint(origin: LatLng, distanceKm: number, bearingDegrees: number)
 }
 
 function buildWaypointCandidates(origin: LatLng, distanceKm: number) {
-  const loopFactor = distanceKm / 3;
-  return [
-    { id: "north-park", label: "Loop norte", point: offsetPoint(origin, loopFactor, 0) },
-    { id: "east-fast", label: "Loop leste", point: offsetPoint(origin, loopFactor, 90) },
-    { id: "south-safe", label: "Loop sul", point: offsetPoint(origin, loopFactor, 180) },
-  ];
+  const factors = [0.28, 0.34, 0.4];
+  const bearings = [0, 45, 90, 135, 180, 225];
+  const candidates: Array<{ id: string; label: string; point: LatLng }> = [];
+
+  for (const factor of factors) {
+    for (const bearing of bearings) {
+      const distance = Math.max(1.2, distanceKm * factor);
+      candidates.push({
+        id: `b${bearing}-f${String(factor).replace('.', '')}`,
+        label: `Loop ${bearing}° · fator ${factor}`,
+        point: offsetPoint(origin, distance, bearing),
+      });
+    }
+  }
+
+  return candidates;
 }
 
 export async function geocodeLocation(input: string): Promise<LatLng | null> {
@@ -120,7 +130,10 @@ export async function fetchGoogleRouteCandidates(origin: LatLng, distanceKm: num
     })
   );
 
-  return results.filter((item): item is MapsRouteCandidate => item !== null);
+  return results
+    .filter((item): item is MapsRouteCandidate => item !== null)
+    .sort((a, b) => a.durationSeconds - b.durationSeconds)
+    .slice(0, 6);
 }
 
 export function hasGoogleMapsConfigured() {

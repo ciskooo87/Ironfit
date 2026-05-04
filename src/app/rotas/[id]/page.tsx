@@ -1,17 +1,19 @@
 import { AppShell } from "@/components/AppShell";
 import { RouteMapCard } from "@/components/RouteMapCard";
+import { getCurrentUser } from "@/lib/auth";
 import { listSavedRouteRequests } from "@/lib/route-store";
 
 export default async function RouteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const requests = await listSavedRouteRequests();
+  const user = await getCurrentUser();
+  const requests = await listSavedRouteRequests(user?.email ?? null);
   const route = requests.flatMap((request) => request.recommendations).find((item) => item.id === id);
 
   if (!route) {
     return (
       <AppShell>
         <main className="rounded-[32px] border border-white/10 bg-white/5 p-6 md:p-8 text-slate-200">
-          Rota não encontrada no histórico salvo.
+          {user ? "Rota não encontrada para este usuário no histórico salvo." : "Rota não encontrada no histórico salvo."}
         </main>
       </AppShell>
     );
