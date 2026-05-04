@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
-import { generateRecommendations, normalizeInput, preferenceOptions, trainingOptions } from "@/lib/routefit-data";
+import { recommendRoutes } from "@/lib/route-engine";
+import { normalizeInput, preferenceOptions, trainingOptions } from "@/lib/routefit-data";
 
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const input = normalizeInput(await searchParams);
-  const routes = generateRecommendations(input);
+  const recommendationResult = await recommendRoutes(input);
+  const routes = recommendationResult.recommendations;
 
   return (
     <AppShell>
@@ -87,8 +89,14 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
               <div className="mt-2 text-sm text-slate-300">{input.modality} · {input.distance} km · {input.trainingType}</div>
             </div>
             <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
-              <div className="text-xs uppercase tracking-[0.18em] text-slate-400">Próximo passo técnico</div>
-              <div className="mt-3 text-sm leading-7 text-slate-300">Integrar Google Maps Directions + trânsito e trocar a geração simulada por rotas reais candidatas.</div>
+              <div className="text-xs uppercase tracking-[0.18em] text-slate-400">Provider atual</div>
+              <div className="mt-3 text-sm leading-7 text-slate-300">
+                {recommendationResult.provider === "mock_rules"
+                  ? "Rodando em mock por regras. Falta configurar Google Maps API para candidatas reais."
+                  : recommendationResult.provider === "google_maps_fallback"
+                    ? "Google Maps já configurado, mas ainda sem geração real de candidatas."
+                    : "Google Maps ativo com candidatas reais."}
+              </div>
             </div>
             <div className="rounded-[28px] border border-white/10 bg-white/5 p-5">
               <div className="text-xs uppercase tracking-[0.18em] text-slate-400">Stack do MVP</div>
