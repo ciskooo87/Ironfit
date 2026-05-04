@@ -7,7 +7,50 @@ export type MapsRouteCandidate = {
   durationSeconds: number;
   polyline?: string;
   warnings?: string[];
+  waypointLabel: string;
 };
+
+function toRadians(value: number) {
+  return (value * Math.PI) / 180;
+}
+
+function toDegrees(value: number) {
+  return (value * 180) / Math.PI;
+}
+
+function offsetPoint(origin: LatLng, distanceKm: number, bearingDegrees: number): LatLng {
+  const earthRadiusKm = 6371;
+  const angularDistance = distanceKm / earthRadiusKm;
+  const bearing = toRadians(bearingDegrees);
+  const lat1 = toRadians(origin.lat);
+  const lng1 = toRadians(origin.lng);
+
+  const lat2 = Math.asin(
+    Math.sin(lat1) * Math.cos(angularDistance) +
+      Math.cos(lat1) * Math.sin(angularDistance) * Math.cos(bearing)
+  );
+
+  const lng2 =
+    lng1 +
+    Math.atan2(
+      Math.sin(bearing) * Math.sin(angularDistance) * Math.cos(lat1),
+      Math.cos(angularDistance) - Math.sin(lat1) * Math.sin(lat2)
+    );
+
+  return {
+    lat: toDegrees(lat2),
+    lng: toDegrees(lng2),
+  };
+}
+
+function buildWaypointCandidates(origin: LatLng, distanceKm: number) {
+  const loopFactor = distanceKm / 3;
+  return [
+    { id: "north-park", label: "Loop norte", point: offsetPoint(origin, loopFactor, 0) },
+    { id: "east-fast", label: "Loop leste", point: offsetPoint(origin, loopFactor, 90) },
+    { id: "south-safe", label: "Loop sul", point: offsetPoint(origin, loopFactor, 180) },
+  ];
+}
 
 export async function geocodeLocation(input: string): Promise<LatLng | null> {
   const apiKey = process.env.GOOGLE_MAPS_API_KEY;
@@ -22,12 +65,62 @@ export async function geocodeLocation(input: string): Promise<LatLng | null> {
   };
 
   const location = data.results?.[0]?.geometry?.location;
-  if (!location?.lat || !location?.lng) return null;
+  if (location?.lat == null || location?.lng == null) return null;
   return { lat: location.lat, lng: location.lng };
 }
 
-export async function fetchGoogleRouteCandidates(_origin: LatLng, _distanceKm: number, _mode: "corrida" | "bike") {
-  return [] as MapsRouteCandidate[];
+async function fetchDirectionsRoute(origin: LatLng, waypoint: LatLng, mode: "corrida" | "bike", apiKey: string) {
+  const travelMode = mode === "bike" ? "bicycling" : "walking";
+  const url = `https://maps.googleapis.com/maps/api/directions/json?origin=${origin.lat},${origin.lng}&destination=${origin.lat},${origin.lng}&waypoints=${waypoint.lat},${waypoint.lng}&mode=${travelMode}&departure_time=now&alternatives=false&key=${apiKey}`;
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) return null;
+
+  const data = (await res.json()) as {
+    routes?: Array<{
+      summary?: string;
+      overview_polyline?: { points?: string };
+      warnings?: string[];
+      legs?: Array<{ distance?: { value?: number }; duration?: { value?: number } }>;
+    }>;
+  };
+
+  const route = data.routes?.[0];
+  if (!route?.legs?.length) return null;
+
+  const distanceMeters = route.legs.reduce((sum, leg) => sum + Number(leg.distance?.value || 0), 0);
+  const durationSeconds = route.legs.reduce((sum, leg) => sum + Number(leg.duration?.value || 0), 0);
+
+  return {
+    summary: route.summary || "Rota candidata",
+    distanceMeters,
+    durationSeconds,
+    polyline: route.overview_polyline?.points,
+    warnings: route.warnings || [],
+  };
+}
+
+export async function fetchGoogleRouteCandidates(origin: LatLng, distanceKm: number, mode: "corrida" | "bike") {
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
+  if (!apiKey) return [] as MapsRouteCandidate[];
+
+  const waypointCandidates = buildWaypointCandidates(origin, distanceKm);
+  const results: Array<MapsRouteCandidate | null> = await Promise.all(
+    waypointCandidates.map(async (candidate) => {
+      const route = await fetchDirectionsRoute(origin, candidate.point, mode, apiKey);
+      if (!route) return null;
+      return {
+        id: candidate.id,
+        summary: route.summary,
+        distanceMeters: route.distanceMeters,
+        durationSeconds: route.durationSeconds,
+        polyline: route.polyline,
+        warnings: route.warnings,
+        waypointLabel: candidate.label,
+      } satisfies MapsRouteCandidate;
+    })
+  );
+
+  return results.filter((item): item is MapsRouteCandidate => item !== null);
 }
 
 export function hasGoogleMapsConfigured() {

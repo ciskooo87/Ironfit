@@ -10,8 +10,10 @@ export async function POST(req: Request) {
   return NextResponse.json({
     ok: true,
     input,
+    requestId: result.requestId,
     provider: result.provider,
     mapsEnabled: result.mapsEnabled,
+    candidateCount: result.candidateCount,
     recommendations: result.recommendations,
   });
 }
