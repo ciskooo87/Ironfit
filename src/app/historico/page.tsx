@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
+import { getCurrentUser } from "@/lib/auth";
 import { listSavedRouteRequests } from "@/lib/route-store";
 
 export default async function HistoryPage() {
-  const items = await listSavedRouteRequests();
+  const user = await getCurrentUser();
+  const items = await listSavedRouteRequests(user?.email ?? null);
 
   return (
     <AppShell>
@@ -11,7 +13,7 @@ export default async function HistoryPage() {
         <section className="rounded-[32px] border border-white/10 bg-white/5 p-6 md:p-8">
           <div className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">Histórico</div>
           <h1 className="mt-3 text-4xl font-semibold tracking-[-0.06em] text-white">Rotas geradas e recomendações salvas</h1>
-          <p className="mt-4 text-sm leading-7 text-slate-300">Enquanto o banco real não entra, o MVP salva as recomendações em arquivo local para manter rastreabilidade e histórico funcional.</p>
+          <p className="mt-4 text-sm leading-7 text-slate-300">O histórico agora tenta respeitar o usuário logado. Quando houver banco ativo, cada atleta vê primeiro as rotas associadas à sua própria sessão.</p>
         </section>
 
         <section className="grid gap-4">
@@ -38,7 +40,7 @@ export default async function HistoryPage() {
             );
           }) : (
             <article className="rounded-[28px] border border-white/10 bg-white/5 p-6 text-sm leading-7 text-slate-300">
-              Nenhuma rota salva ainda. Gere uma recomendação na home para começar o histórico.
+              {user ? "Nenhuma rota salva ainda para este usuário. Gere uma recomendação na home para começar o histórico." : "Faça login para ter um histórico vinculado ao seu usuário. Sem login, o MVP pode cair em histórico local compartilhado do ambiente."}
             </article>
           )}
         </section>

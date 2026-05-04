@@ -110,9 +110,13 @@ async function saveToDb(input: RouteInput, recommendations: RouteRecommendation[
   return id;
 }
 
-async function listFromDb(): Promise<StoredRouteRequest[]> {
+async function listFromDb(userEmail?: string | null): Promise<StoredRouteRequest[]> {
   const db = getDb();
   if (!db) return listFromFile();
+
+  const params: unknown[] = [];
+  const where = userEmail ? 'where u.email = $1' : '';
+  if (userEmail) params.push(userEmail);
 
   const { rows } = await db.query(`
     select rr.id,
@@ -146,10 +150,12 @@ async function listFromDb(): Promise<StoredRouteRequest[]> {
            ) order by sr.overall_score desc) as recommendations
     from route_requests rr
     join saved_routes sr on sr.request_id = rr.id
+    left join users u on u.id = rr.user_id
+    ${where}
     group by rr.id
     order by rr.created_at desc
     limit 50
-  `);
+  `, params);
 
   return rows.map((row) => ({
     id: row.id,
@@ -173,7 +179,7 @@ export async function saveRouteRequest(input: RouteInput, recommendations: Route
   return saveToFile(input, recommendations);
 }
 
-export async function listSavedRouteRequests(): Promise<StoredRouteRequest[]> {
-  if (hasDatabaseConfigured()) return listFromDb();
+export async function listSavedRouteRequests(userEmail?: string | null): Promise<StoredRouteRequest[]> {
+  if (hasDatabaseConfigured()) return listFromDb(userEmail);
   return listFromFile();
 }
