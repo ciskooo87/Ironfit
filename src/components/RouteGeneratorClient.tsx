@@ -187,7 +187,7 @@ export function RouteGeneratorClient({
             </div>
 
             <div className="mt-5 grid gap-4 xl:grid-cols-[1fr_0.88fr]">
-              <RouteMapCard title={route.title} summary={route.mapSummary} polyline={route.polyline} />
+              <RouteMapCard title={route.title} summary={route.mapSummary} polyline={route.polyline} locationLabel={input.location} />
               <div className="grid gap-4">
                 <div className="rounded-[28px] bg-slate-900 p-5">
                   <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Pontos de atenção</div>

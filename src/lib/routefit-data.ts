@@ -185,13 +185,21 @@ function buildRoute(kind: RouteKind, input: RouteInput): RouteRecommendation {
   };
 }
 
-export function normalizeInput(searchParams: Record<string, string | string[] | undefined>): RouteInput {
+export function normalizeInput(searchParams: Record<string, unknown>): RouteInput {
   const get = (key: string, fallback = "") => {
     const value = searchParams[key];
-    return Array.isArray(value) ? value[0] || fallback : value || fallback;
+    if (Array.isArray(value)) return String(value[0] ?? fallback);
+    if (value == null) return fallback;
+    return String(value);
   };
 
-  const preferencesRaw = get("preferences");
+  const rawPreferences = searchParams["preferences"];
+  const preferences = Array.isArray(rawPreferences)
+    ? rawPreferences.map((item) => String(item).trim()).filter(Boolean)
+    : typeof rawPreferences === "string"
+      ? rawPreferences.split(",").map((item) => item.trim()).filter(Boolean)
+      : ["evitar trânsito", "rota circular"];
+
   return {
     location: get("location", "Ibirapuera, São Paulo"),
     date: get("date", "2026-05-05"),
@@ -201,7 +209,7 @@ export function normalizeInput(searchParams: Record<string, string | string[] | 
     trainingType: (trainingOptions.includes(get("trainingType", "leve") as TrainingType)
       ? get("trainingType", "leve")
       : "leve") as TrainingType,
-    preferences: preferencesRaw ? preferencesRaw.split(",").map((item) => item.trim()).filter(Boolean) : ["evitar trânsito", "rota circular"],
+    preferences,
   };
 }
 

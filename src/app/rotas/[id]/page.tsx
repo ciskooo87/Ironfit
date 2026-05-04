@@ -49,7 +49,7 @@ export default async function RouteDetailPage({ params }: { params: Promise<{ id
         </section>
 
         <aside className="grid gap-6">
-          <RouteMapCard title={route.title} summary={route.mapSummary} polyline={route.polyline} />
+          <RouteMapCard title={route.title} summary={route.mapSummary} polyline={route.polyline} locationLabel={request?.input.location} />
 
           <section className="rounded-[32px] border border-white/10 bg-white/5 p-6">
             <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Pontos de atenção</div>
