@@ -174,7 +174,7 @@ export function RouteGeneratorClient({
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Link href={`/rotas/${route.id}`} className="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white">Ver detalhe</Link>
+                  <Link href={{ pathname: `/rotas/${route.id}`, query: { location: initialInput.location, date: initialInput.date, time: initialInput.time, modality: initialInput.modality, distance: String(initialInput.distance), trainingType: initialInput.trainingType, preferences: initialInput.preferences, kind: route.kind } }} className="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white">Ver detalhe</Link>
                   <Link href="/historico" className="rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-sm font-semibold text-emerald-900">Salvar / histórico</Link>
                 </div>
               </div>

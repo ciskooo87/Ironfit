@@ -1,20 +1,27 @@
 import { AppShell } from "@/components/AppShell";
 import { RouteMapCard } from "@/components/RouteMapCard";
-import { getCurrentUser } from "@/lib/auth";
-import { listSavedRouteRequests } from "@/lib/route-store";
+import { normalizeInput } from "@/lib/routefit-data";
+import { recommendRoutes } from "@/lib/route-engine";
 
-export default async function RouteDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function RouteDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { id } = await params;
-  const user = await getCurrentUser();
-  const requests = await listSavedRouteRequests(user?.email ?? null);
-  const request = requests.find((entry) => entry.recommendations.some((item) => item.id === id));
-  const route = request?.recommendations.find((item) => item.id === id);
+  const resolvedSearch = await searchParams;
+  const input = normalizeInput(resolvedSearch);
+  const kindFromQuery = Array.isArray(resolvedSearch.kind) ? resolvedSearch.kind[0] : resolvedSearch.kind;
+  const result = await recommendRoutes(input);
+  const route = result.recommendations.find((item) => item.id === id) || result.recommendations.find((item) => item.kind === kindFromQuery) || result.recommendations[0];
 
   if (!route) {
     return (
       <AppShell>
-        <main className="rounded-[32px] border border-white/10 bg-white/5 p-6 md:p-8 text-slate-200">
-          {user ? "Rota não encontrada para este usuário no histórico salvo." : "Rota não encontrada no histórico salvo."}
+        <main className="rounded-[32px] border border-emerald-100 bg-white p-6 text-emerald-900 md:p-8">
+          Rota não encontrada para esse conjunto de filtros.
         </main>
       </AppShell>
     );
@@ -23,47 +30,43 @@ export default async function RouteDetailPage({ params }: { params: Promise<{ id
   return (
     <AppShell>
       <main className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
-        <section className="rounded-[32px] border border-white/10 bg-white/5 p-6 md:p-8">
-          <div className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-300">Detalhe da rota</div>
-          <h1 className="mt-3 text-4xl font-semibold tracking-[-0.06em] text-white">{route.title}</h1>
-          <p className="mt-4 text-sm leading-7 text-slate-300">{route.recommendationReason}</p>
-          <div className="mt-3 text-xs uppercase tracking-[0.18em] text-slate-400">Geometria no banco: {route.geometryAvailable ? "sim" : "não"}</div>
+        <section className="rounded-[32px] border border-emerald-100 bg-white p-6 text-emerald-900 shadow-[0_16px_50px_rgba(16,24,40,0.06)] md:p-8">
+          <div className="text-xs font-semibold uppercase tracking-[0.22em] text-emerald-600">Detalhe da rota</div>
+          <h1 className="mt-3 text-4xl font-semibold tracking-[-0.06em] text-emerald-950">{route.title}</h1>
+          <p className="mt-4 text-sm leading-7 text-emerald-800">{route.recommendationReason}</p>
+          <div className="mt-3 text-xs uppercase tracking-[0.18em] text-emerald-700">Provider: {result.provider} · candidatas reais: {result.candidateCount}</div>
 
-          {request ? (
-            <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">
-              <span className="rounded-full border border-white/10 bg-slate-900 px-3 py-2">{request.input.modality}</span>
-              <span className="rounded-full border border-white/10 bg-slate-900 px-3 py-2">{request.input.distance} km</span>
-              <span className="rounded-full border border-white/10 bg-slate-900 px-3 py-2">{request.input.trainingType}</span>
-              <span className="rounded-full border border-white/10 bg-slate-900 px-3 py-2">{request.input.date} {request.input.time}</span>
-            </div>
-          ) : null}
+          <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-900">
+            <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2">{input.modality}</span>
+            <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2">{input.distance} km</span>
+            <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2">{input.trainingType}</span>
+            <span className="rounded-full border border-emerald-100 bg-emerald-50 px-3 py-2">{input.date} {input.time}</span>
+          </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <div className="rounded-2xl bg-slate-900 p-4"><div className="text-xs uppercase text-slate-400">Distância</div><div className="mt-2 text-2xl font-semibold text-white">{route.distanceKm} km</div></div>
-            <div className="rounded-2xl bg-slate-900 p-4"><div className="text-xs uppercase text-slate-400">Tempo</div><div className="mt-2 text-2xl font-semibold text-white">{route.estimatedMinutes} min</div></div>
-            <div className="rounded-2xl bg-slate-900 p-4"><div className="text-xs uppercase text-slate-400">Elevação</div><div className="mt-2 text-2xl font-semibold text-white">{route.elevationGain} m</div></div>
-            <div className="rounded-2xl bg-slate-900 p-4"><div className="text-xs uppercase text-slate-400">Segurança</div><div className="mt-2 text-2xl font-semibold text-white">{route.safetyScore}</div></div>
-            <div className="rounded-2xl bg-slate-900 p-4"><div className="text-xs uppercase text-slate-400">Trânsito</div><div className="mt-2 text-2xl font-semibold text-white">{route.trafficScore}</div></div>
-            <div className="rounded-2xl bg-slate-900 p-4"><div className="text-xs uppercase text-slate-400">Fluidez</div><div className="mt-2 text-2xl font-semibold text-white">{route.flowScore}</div></div>
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4"><div className="text-xs uppercase text-emerald-600">Distância</div><div className="mt-2 text-2xl font-semibold text-emerald-950">{route.distanceKm} km</div></div>
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4"><div className="text-xs uppercase text-emerald-600">Tempo</div><div className="mt-2 text-2xl font-semibold text-emerald-950">{route.estimatedMinutes} min</div></div>
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4"><div className="text-xs uppercase text-emerald-600">Elevação</div><div className="mt-2 text-2xl font-semibold text-emerald-950">{route.elevationGain} m</div></div>
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4"><div className="text-xs uppercase text-emerald-600">Segurança</div><div className="mt-2 text-2xl font-semibold text-emerald-950">{route.safetyScore}</div></div>
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4"><div className="text-xs uppercase text-emerald-600">Trânsito</div><div className="mt-2 text-2xl font-semibold text-emerald-950">{route.trafficScore}</div></div>
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4"><div className="text-xs uppercase text-emerald-600">Fluidez</div><div className="mt-2 text-2xl font-semibold text-emerald-950">{route.flowScore}</div></div>
           </div>
         </section>
 
         <aside className="grid gap-6">
-          <RouteMapCard title={route.title} summary={route.mapSummary} polyline={route.polyline} locationLabel={request?.input.location} />
+          <RouteMapCard title={route.title} summary={route.mapSummary} polyline={route.polyline} locationLabel={input.location} />
 
-          <section className="rounded-[32px] border border-white/10 bg-white/5 p-6">
-            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Pontos de atenção</div>
+          <section className="rounded-[32px] border border-emerald-100 bg-white p-6 shadow-[0_16px_50px_rgba(16,24,40,0.06)]">
+            <div className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-600">Pontos de atenção</div>
             <div className="mt-3 grid gap-2">
               {route.attentionPoints.map((point) => (
-                <div key={point} className="rounded-2xl bg-slate-900 px-4 py-3 text-sm text-slate-200">{point}</div>
+                <div key={point} className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{point}</div>
               ))}
             </div>
-            {request ? (
-              <div className="mt-4 rounded-2xl border border-white/10 bg-slate-900 px-4 py-4 text-sm leading-7 text-slate-300">
-                <div><strong className="text-white">Local do request:</strong> {request.input.location}</div>
-                <div className="mt-2"><strong className="text-white">Preferências:</strong> {request.input.preferences.length ? request.input.preferences.join(" • ") : "nenhuma"}</div>
-              </div>
-            ) : null}
+            <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-4 text-sm leading-7 text-emerald-900">
+              <div><strong className="text-emerald-950">Local do request:</strong> {input.location}</div>
+              <div className="mt-2"><strong className="text-emerald-950">Preferências:</strong> {input.preferences.length ? input.preferences.join(" • ") : "nenhuma"}</div>
+            </div>
           </section>
         </aside>
       </main>
