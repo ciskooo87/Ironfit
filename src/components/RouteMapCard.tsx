@@ -1,3 +1,5 @@
+import polyline from "@mapbox/polyline";
+
 type Props = {
   title?: string;
   summary: string;
@@ -7,9 +9,24 @@ type Props = {
   estimatedMinutes?: number;
 };
 
-function buildStaticMapUrl(polyline?: string, locationLabel?: string) {
+type LatLng = [number, number];
+
+function decodePolyline(polylineText?: string): LatLng[] {
+  if (!polylineText) return [];
+  try {
+    return polyline.decode(polylineText).map(([lat, lng]) => [lat, lng] as LatLng);
+  } catch {
+    return [];
+  }
+}
+
+function buildStaticMapUrl(polylineText?: string, locationLabel?: string) {
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.env.GOOGLE_MAPS_API_KEY;
   if (!apiKey) return null;
+
+  const points = decodePolyline(polylineText);
+  const start = points[0];
+  const end = points[points.length - 1];
 
   const params = new URLSearchParams({
     size: "1200x720",
@@ -19,18 +36,32 @@ function buildStaticMapUrl(polyline?: string, locationLabel?: string) {
     style: "feature:poi|visibility:simplified",
   });
 
-  if (polyline) params.append("path", `weight:6|color:0x10b981|enc:${polyline}`);
-  if (locationLabel) {
+  if (polylineText) params.append("path", `weight:6|color:0x10b981|enc:${polylineText}`);
+
+  if (start) {
+    params.append("markers", `color:green|label:I|${start[0]},${start[1]}`);
+  }
+
+  if (end) {
+    params.append("markers", `color:red|label:F|${end[0]},${end[1]}`);
+  }
+
+  if (!start && locationLabel) {
     params.append("center", locationLabel);
     params.append("zoom", "13");
     params.append("markers", `color:green|${locationLabel}`);
   }
 
-  return `https://maps.googleapis.com/maps/api/staticmap?${params.toString()}`;
+  return {
+    url: `https://maps.googleapis.com/maps/api/staticmap?${params.toString()}`,
+    hasStart: Boolean(start),
+    hasEnd: Boolean(end),
+  };
 }
 
-export function RouteMapCard({ title, summary, polyline, locationLabel, distanceKm, estimatedMinutes }: Props) {
-  const imageUrl = buildStaticMapUrl(polyline, locationLabel);
+export function RouteMapCard({ title, summary, polyline: polylineText, locationLabel, distanceKm, estimatedMinutes }: Props) {
+  const mapData = buildStaticMapUrl(polylineText, locationLabel);
+  const imageUrl = mapData?.url ?? null;
 
   return (
     <div className="rounded-[30px] border border-emerald-100 bg-white p-4 shadow-[0_16px_50px_rgba(16,24,40,0.06)] md:p-5">
@@ -70,8 +101,12 @@ export function RouteMapCard({ title, summary, polyline, locationLabel, distance
           <div className="mt-2">{summary}</div>
         </div>
         <div className="rounded-2xl border border-emerald-100 bg-white px-4 py-4 text-sm text-emerald-800">
-          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-600">Status</div>
-          <div className="mt-2">{polyline ? "Mapa real renderizado sobre fundo do Google Maps." : "Mapa centralizado na localização pesquisada."}</div>
+          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-emerald-600">Início e fim</div>
+          <div className="mt-2">
+            {mapData?.hasStart || mapData?.hasEnd
+              ? "O mapa destaca o início com marcador verde (I) e o fim com marcador vermelho (F)."
+              : "Sem geometria suficiente para marcar início e fim nesta resposta."}
+          </div>
         </div>
       </div>
     </div>
