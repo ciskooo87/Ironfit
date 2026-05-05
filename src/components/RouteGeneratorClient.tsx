@@ -12,6 +12,7 @@ type Props = {
   initialRequestId: string;
   initialCandidateCount: number;
   activeProfile: IronfitProfile;
+  profileSaved?: boolean;
 };
 
 function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {

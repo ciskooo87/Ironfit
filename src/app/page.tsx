@@ -5,13 +5,15 @@ import { recommendRoutes } from "@/lib/route-engine";
 import { normalizeInput } from "@/lib/routefit-data";
 
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const resolvedSearch = await searchParams;
   const profile = await getIronfitProfile();
-  const input = normalizeInput(await searchParams, {
+  const input = normalizeInput(resolvedSearch, {
     modality: profile.modality,
     trainingType: profile.trainingType,
     preferences: profile.preferences,
   });
   const recommendationResult = await recommendRoutes(input);
+  const profileSaved = (Array.isArray(resolvedSearch.profileSaved) ? resolvedSearch.profileSaved[0] : resolvedSearch.profileSaved) === "1";
 
   return (
     <AppShell>
@@ -22,6 +24,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
         initialRequestId={recommendationResult.requestId}
         initialCandidateCount={recommendationResult.candidateCount}
         activeProfile={profile}
+        profileSaved={profileSaved}
       />
     </AppShell>
   );
