@@ -21,6 +21,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
         initialProvider={recommendationResult.provider}
         initialRequestId={recommendationResult.requestId}
         initialCandidateCount={recommendationResult.candidateCount}
+        activeProfile={profile}
       />
     </AppShell>
   );

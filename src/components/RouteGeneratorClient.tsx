@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CurrentLocationField } from "@/components/CurrentLocationField";
 import { RouteMapCard } from "@/components/RouteMapCard";
 import { withBasePath } from "@/lib/base-path";
+import type { IronfitProfile } from "@/lib/profile";
 import { preferenceOptions, RouteInput, RouteRecommendation, trainingOptions } from "@/lib/routefit-data";
 
 type Props = {
@@ -10,6 +11,7 @@ type Props = {
   initialProvider: string;
   initialRequestId: string;
   initialCandidateCount: number;
+  activeProfile: IronfitProfile;
 };
 
 function Panel({ children, className = "" }: { children: React.ReactNode; className?: string }) {
@@ -54,6 +56,7 @@ export function RouteGeneratorClient({
   initialProvider,
   initialRequestId,
   initialCandidateCount,
+  activeProfile,
 }: Props) {
   const actionPath = withBasePath("/");
 
@@ -133,7 +136,7 @@ export function RouteGeneratorClient({
       </Panel>
 
       <section className="grid gap-4">
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-5">
           <Panel className="p-5">
             <div className="text-xs uppercase tracking-[0.18em] text-emerald-600">Local atual</div>
             <div className="mt-3 text-lg font-semibold text-emerald-950">{initialInput.location}</div>
