@@ -175,11 +175,23 @@ async function listFromDb(userEmail?: string | null): Promise<StoredRouteRequest
 }
 
 export async function saveRouteRequest(input: RouteInput, recommendations: RouteRecommendation[], userEmail?: string | null) {
-  if (hasDatabaseConfigured()) return saveToDb(input, recommendations, userEmail);
-  return saveToFile(input, recommendations);
+  if (!hasDatabaseConfigured()) return saveToFile(input, recommendations);
+
+  try {
+    return await saveToDb(input, recommendations, userEmail);
+  } catch (error) {
+    console.error("[route-store] saveToDb failed, falling back to file storage", error);
+    return saveToFile(input, recommendations);
+  }
 }
 
 export async function listSavedRouteRequests(userEmail?: string | null): Promise<StoredRouteRequest[]> {
-  if (hasDatabaseConfigured()) return listFromDb(userEmail);
-  return listFromFile();
+  if (!hasDatabaseConfigured()) return listFromFile();
+
+  try {
+    return await listFromDb(userEmail);
+  } catch (error) {
+    console.error("[route-store] listFromDb failed, falling back to file storage", error);
+    return listFromFile();
+  }
 }
