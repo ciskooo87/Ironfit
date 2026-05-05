@@ -58,6 +58,7 @@ export function RouteGeneratorClient({
   initialRequestId,
   initialCandidateCount,
   activeProfile,
+  profileSaved = false,
 }: Props) {
   const actionPath = withBasePath("/");
 
@@ -73,6 +74,11 @@ export function RouteGeneratorClient({
         </div>
 
         <form method="GET" action={actionPath} className="grid gap-5 px-6 py-6 md:px-7">
+          {profileSaved ? (
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-4 text-sm text-emerald-900">
+              Perfil salvo com sucesso. A home já está usando seus defaults do onboarding.
+            </div>
+          ) : null}
           <CurrentLocationField defaultValue={initialInput.location} />
 
           <div className="grid gap-4 md:grid-cols-2">
