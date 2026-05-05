@@ -185,7 +185,7 @@ function buildRoute(kind: RouteKind, input: RouteInput): RouteRecommendation {
   };
 }
 
-export function normalizeInput(searchParams: Record<string, unknown>): RouteInput {
+export function normalizeInput(searchParams: Record<string, unknown>, defaults?: Partial<RouteInput>): RouteInput {
   const get = (key: string, fallback = "") => {
     const value = searchParams[key];
     if (Array.isArray(value)) return String(value[0] ?? fallback);
@@ -198,17 +198,24 @@ export function normalizeInput(searchParams: Record<string, unknown>): RouteInpu
     ? rawPreferences.map((item) => String(item).trim()).filter(Boolean)
     : typeof rawPreferences === "string"
       ? rawPreferences.split(",").map((item) => item.trim()).filter(Boolean)
-      : ["evitar trânsito", "rota circular"];
+      : defaults?.preferences?.length
+        ? defaults.preferences
+        : ["evitar trânsito", "rota circular"];
+
+  const defaultModality = defaults?.modality === "bike" ? "bike" : "corrida";
+  const defaultTrainingType = defaults?.trainingType && trainingOptions.includes(defaults.trainingType as TrainingType)
+    ? defaults.trainingType
+    : "leve";
 
   return {
-    location: get("location", "Ibirapuera, São Paulo"),
-    date: get("date", "2026-05-05"),
-    time: get("time", "06:00"),
-    modality: get("modality", "corrida") === "bike" ? "bike" : "corrida",
-    distance: Number(get("distance", "10")) || 10,
-    trainingType: (trainingOptions.includes(get("trainingType", "leve") as TrainingType)
-      ? get("trainingType", "leve")
-      : "leve") as TrainingType,
+    location: get("location", defaults?.location || "Ibirapuera, São Paulo"),
+    date: get("date", defaults?.date || "2026-05-05"),
+    time: get("time", defaults?.time || "06:00"),
+    modality: get("modality", defaultModality) === "bike" ? "bike" : "corrida",
+    distance: Number(get("distance", String(defaults?.distance || 10))) || defaults?.distance || 10,
+    trainingType: (trainingOptions.includes(get("trainingType", String(defaultTrainingType)) as TrainingType)
+      ? get("trainingType", String(defaultTrainingType))
+      : defaultTrainingType) as TrainingType,
     preferences,
   };
 }
