@@ -36,7 +36,10 @@ export function CurrentLocationField({ defaultValue }: Props) {
 
   return (
     <div>
-      <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Localização</label>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <label className="block text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Localização</label>
+        <div className="text-xs text-emerald-700">Use um bairro, parque ou sua posição atual</div>
+      </div>
       <div className="flex flex-col gap-2 sm:flex-row">
         <input
           id="ironfit-location-input"
