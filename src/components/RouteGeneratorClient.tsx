@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { RouteMapCard } from "@/components/RouteMapCard";
-import { BASE_PATH } from "@/lib/base-path";
+import { withBasePath } from "@/lib/base-path";
 import { preferenceOptions, RouteInput, RouteRecommendation, trainingOptions } from "@/lib/routefit-data";
 
 type Props = {
@@ -22,7 +22,7 @@ export function RouteGeneratorClient({
   initialRequestId,
   initialCandidateCount,
 }: Props) {
-  const actionPath = `${BASE_PATH || ""}/` || "/";
+  const actionPath = withBasePath("/");
 
   return (
     <main className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
@@ -174,8 +174,8 @@ export function RouteGeneratorClient({
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Link href={{ pathname: `/rotas/${route.id}`, query: { location: initialInput.location, date: initialInput.date, time: initialInput.time, modality: initialInput.modality, distance: String(initialInput.distance), trainingType: initialInput.trainingType, preferences: initialInput.preferences, kind: route.kind } }} className="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white">Ver detalhe</Link>
-                  <Link href="/historico" className="rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-sm font-semibold text-emerald-900">Salvar / histórico</Link>
+                  <Link href={withBasePath(`/rotas/${route.id}?location=${encodeURIComponent(initialInput.location)}&date=${encodeURIComponent(initialInput.date)}&time=${encodeURIComponent(initialInput.time)}&modality=${encodeURIComponent(initialInput.modality)}&distance=${encodeURIComponent(String(initialInput.distance))}&trainingType=${encodeURIComponent(initialInput.trainingType)}&preferences=${initialInput.preferences.map(encodeURIComponent).join('&preferences=')}&kind=${encodeURIComponent(route.kind)}`)} className="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white">Ver detalhe</Link>
+                  <Link href={withBasePath('/historico')} className="rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-sm font-semibold text-emerald-900">Salvar / histórico</Link>
                 </div>
               </div>
             </div>
