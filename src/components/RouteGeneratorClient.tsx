@@ -152,6 +152,12 @@ export function RouteGeneratorClient({
             <div className="mt-3 text-sm leading-6 text-emerald-800">{initialInput.preferences.length ? initialInput.preferences.join(" • ") : "nenhuma"}</div>
           </Panel>
           <Panel className="p-5">
+            <div className="text-xs uppercase tracking-[0.18em] text-emerald-600">Perfil ativo</div>
+            <div className="mt-3 text-sm font-semibold text-emerald-950">{activeProfile.level} · {activeProfile.modality}</div>
+            <div className="mt-2 text-sm text-emerald-800">Treino padrão: {activeProfile.trainingType}</div>
+            <div className="mt-2 text-xs leading-6 text-emerald-700">Defaults do onboarding: {activeProfile.preferences.join(" • ")}</div>
+          </Panel>
+          <Panel className="p-5">
             <div className="text-xs uppercase tracking-[0.18em] text-emerald-600">Request</div>
             <div className="mt-3 text-xs leading-6 text-emerald-800">ID: {initialRequestId}</div>
             <div className="mt-2 text-sm text-emerald-800">Google Maps ativo com candidatas reais.</div>
