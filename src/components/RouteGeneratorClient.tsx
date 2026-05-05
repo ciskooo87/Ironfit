@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CurrentLocationField } from "@/components/CurrentLocationField";
 import { RouteMapCard } from "@/components/RouteMapCard";
 import { withBasePath } from "@/lib/base-path";
 import { preferenceOptions, RouteInput, RouteRecommendation, trainingOptions } from "@/lib/routefit-data";
@@ -34,10 +35,7 @@ export function RouteGeneratorClient({
         </p>
 
         <form method="GET" action={actionPath} className="mt-6 grid gap-4">
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">Localização</label>
-            <input name="location" defaultValue={initialInput.location} placeholder="Ex.: Ibirapuera, São Paulo" className="w-full rounded-2xl border border-emerald-100 bg-emerald-50/40 px-4 py-3 text-sm text-emerald-950" />
-          </div>
+          <CurrentLocationField defaultValue={initialInput.location} />
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
