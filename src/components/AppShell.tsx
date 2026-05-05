@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ReactNode } from "react";
 import { logoutAction } from "@/app/login/actions";
 import { getCurrentUser } from "@/lib/auth";
+import { withBasePath } from "@/lib/base-path";
 
 const navItems = [
   { href: "/", label: "Gerar rota" },
@@ -29,7 +30,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
           <div className="flex flex-col gap-4 px-6 py-5 xl:flex-row xl:items-center xl:justify-between">
             <nav className="flex flex-wrap gap-2 text-sm font-semibold text-emerald-900">
               {navItems.map((item) => (
-                <Link key={item.href} href={item.href} className="rounded-full border border-emerald-100 bg-emerald-50 px-4 py-2 transition hover:bg-emerald-100">
+                <Link key={item.href} href={withBasePath(item.href)} className="rounded-full border border-emerald-100 bg-emerald-50 px-4 py-2 transition hover:bg-emerald-100">
                   {item.label}
                 </Link>
               ))}
